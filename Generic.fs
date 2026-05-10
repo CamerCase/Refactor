@@ -45,3 +45,5 @@ leoInicial
         let r = f 3
         printfn $"Resultado es {r}"
         )
+
+
