@@ -1,7 +1,5 @@
 module App.Menu
 
-open System
-open System.Threading
 
 //
 // Esta linea es para traer los simbolos
@@ -78,11 +76,9 @@ let processKeyboard state =
 
 let pipeline = [|
     processKeyboard
-    redrawScreen
+    redrawScreen    
 |]
-
-let miLoop = createMainLoop pipeline (fun s -> s.MenuState = Active)
-
+let  miLoop = createMainLoop pipeline (fun s -> s.MenuState = Active)
 let mostrar() =
     let oldForeground = Console.ForegroundColor
     Console.CursorVisible <- false
@@ -90,9 +86,8 @@ let mostrar() =
     let state =
         initialState
         |> miLoop
-        |> ignore
 
     Console.CursorVisible <- true
     Console.ForegroundColor <- oldForeground
     Console.Clear()
-    fst state.Commands [state.CurSorSelection]
+    state.Commands.[state.CurSorSelection] |> fst
