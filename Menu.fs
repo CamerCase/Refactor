@@ -1,5 +1,6 @@
-module App.Menu
-
+module App.menu
+open System
+open System.Threading
 
 //
 // Esta linea es para traer los simbolos

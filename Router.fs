@@ -1,6 +1,6 @@
 module App.Router
 open App.Types
-open App.Menu
+open App.menu
 //
 // La funcion de este modulo es decidir
 // que se muestra en la pantalla
@@ -18,7 +18,7 @@ let initialState = ShowingMenu
 let rec mainLoop state =
     match state with 
     | ShowingMenu -> 
-        match Menu.mostrar() with 
+        match menu.mostrar() with 
         | NewRockSim -> ShowingRock
         | NewMonsterSim -> ShowingMonster
         | NewSaludo -> ShowingSaludo
