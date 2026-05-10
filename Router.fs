@@ -1,6 +1,6 @@
 module App.Router
-
-open Types
+open App.Types
+open App.Menu
 //
 // La funcion de este modulo es decidir
 // que se muestra en la pantalla

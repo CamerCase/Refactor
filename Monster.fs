@@ -2,8 +2,7 @@ module App.Monster
 
 open System
 open System.Threading
-
-open Utils
+open App.Utils
 
 type ProgramState = 
 | Running
