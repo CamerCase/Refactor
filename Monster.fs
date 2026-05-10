@@ -56,21 +56,20 @@ let redrawScreen state =
     else
         state
 
-let rec mainLoop state =
-    let newState =
-        state
-        |> processKeyboard
-        |> redrawScreen
-    if newState.ProgramState <> Terminated then 
-        Thread.Sleep 25
-        mainLoop newState
+
+let pipeline = [|
+    processKeyboard
+    redrawScreen    
+|]
+
+let miLoop = createMainLoop pipeline (fun s -> s.ProgramState = Running)
 
 let mostrar() =
     Console.Clear()
     Console.CursorVisible <- false
 
     initialState
-    |> mainLoop
-
+    |> miLoop
+    |> ignore
     Console.CursorVisible <- true
     Console.Clear()

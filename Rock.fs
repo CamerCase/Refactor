@@ -2,7 +2,7 @@ module App.Rock
 
 open System
 open System.Threading
-open App.Utils
+open Utils
 
 type RockState =
 | Falling
@@ -76,23 +76,23 @@ let processKeyboard state =
         |> updateRockKeyboard k.Key
     else
         state
-let rec mainLoop state =
-    let newState = 
-        state
-        |> updateTick // Este es un timer
-        |> updateRock
-        |> processKeyboard
-        |> redrawScreen
-    if newState.RockState = Falling then 
-        Thread.Sleep 25
-        mainLoop newState
+
+let pipeline = [|
+    updateTick
+    updateRock
+    processKeyboard
+    redrawScreen
+|]
+
+let miLoop = createMainLoop pipeline (fun s -> s.RockState = Falling)
 
 let mostrar() =
     let oldForeground = Console.ForegroundColor
     Console.CursorVisible <- false
 
     initialState
-    |> mainLoop
+    |> miLoop
+    |> ignore
 
     Console.CursorVisible <- true
     Console.ForegroundColor <- oldForeground

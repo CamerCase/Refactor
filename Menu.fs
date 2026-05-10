@@ -75,16 +75,13 @@ let processKeyboard state =
         |> updateMenuKeyboard k.Key
     else
         state
-let rec mainLoop state =
-    let newState = 
-        state
-        |> processKeyboard
-        |> redrawScreen
-    if newState.MenuState = Active then
-        Thread.Sleep 25
-        mainLoop newState
-    else
-        state
+
+let pipeline = [|
+    processKeyboard
+    redrawScreen
+|]
+
+let miLoop = createMainLoop pipeline (fun s -> s.MenuState = Active)
 
 let mostrar() =
     let oldForeground = Console.ForegroundColor
@@ -92,9 +89,10 @@ let mostrar() =
 
     let state =
         initialState
-        |> mainLoop
+        |> miLoop
+        |> ignore
 
     Console.CursorVisible <- true
     Console.ForegroundColor <- oldForeground
     Console.Clear()
-    fst state.Commands[state.CurSorSelection]
+    fst state.Commands [state.CurSorSelection]

@@ -109,18 +109,6 @@ let redrawScreen state =
     else
         state
 
-let rec mainLoop state =
-    let newState =
-        state
-        |> updateTick
-        |> updateClock
-        |> processKeyboard
-        |> redrawScreen
-    if newState.ProgramState <> Terminated then 
-        Thread.Sleep 25
-        mainLoop newState
-
-
 let pipeline = [|
     updateTick
     updateClock
