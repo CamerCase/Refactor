@@ -2,19 +2,15 @@ module App.Saludo
 
 open System
 open System.Threading
-
-open Utils
+open App.Utils
 
 type ProgramState = 
 | Running
 | Terminated
 
-
 type EntryState =
 | AskingForData
 | ShowingData
-
-
 
 type State = {
     ProgramState: ProgramState
@@ -40,12 +36,12 @@ let initialState = {
     EntryLabel = "Entra tu nombre: "
 }
 
-let updateTick state =
-    {state with Tick = state.Tick+1}
+let updateTick =
+    createUpdateTick (fun s -> s.Tick) (fun t s -> {s with Tick = t})
 
 let updateClock state =
-    if state.Tick <> 0 && state.Tick % 40 = 0 then 
-        {state with Clock=state.Clock+1;RedrawScreen=true}
+    if state.Tick <> 0 && state.Tick % 40 = 0 then
+        {state with Clock=state.Clock+1; RedrawScreen=true}
     else
         state
 
@@ -55,38 +51,34 @@ let updateSaludoKeyboard key state =
     | _ -> state
 
 let updateEntryKeboard (key:ConsoleKeyInfo) state =
-    if state.EntryState = AskingForData then 
+    if state.EntryState = AskingForData then
         match key with
         | k when Char.IsLetter k.KeyChar ->
             {state with EntryData = state.EntryData+key.KeyChar.ToString(); RedrawScreen=true}
         | k ->
-            match k.Key with 
-
+            match k.Key with
             | ConsoleKey.Spacebar ->
                 {state with EntryData = state.EntryData+key.KeyChar.ToString(); RedrawScreen=true}
             | ConsoleKey.Backspace ->
-                {state with EntryData = state.EntryData.Remove(state.EntryData.Length-1,1); RedrawScreen = true}
+                {state with EntryData = state.EntryData.Remove(state.EntryData.Length-1,1); RedrawScreen=true}
             | ConsoleKey.Enter ->
-                { state with EntryState = ShowingData;RedrawScreen=true}
+                {state with EntryState = ShowingData; RedrawScreen=true}
             | _ -> state
     else
         state
 
+// Une los dos handlers en uno solo para pasarlo a createProcessKeyboard
+let handleKey (k:ConsoleKeyInfo) state =
+    state
+    |> updateSaludoKeyboard k.Key
+    |> updateEntryKeboard k
 
-
-let processKeyboard state =
-    if Console.KeyAvailable then 
-        let k = Console.ReadKey true
-        state
-        |> updateSaludoKeyboard k.Key
-        |> updateEntryKeboard k
-    else
-        state
+let processKeyboard =
+    createProcessKeyboard handleKey
 
 let redrawClock state =
     displayMessageRight 0 ConsoleColor.Yellow $"{state.Clock}"
     state
-
 
 let redrawEntry state =
     match state.EntryState with 
@@ -98,16 +90,12 @@ let redrawEntry state =
         displayMessage state.EntryX state.EntryY ConsoleColor.Cyan $"Hola {state.EntryData}"
     state
 
-let redrawScreen state =
-    if state.RedrawScreen then 
-        Console.Clear()
-        state
-        |> redrawClock
-        |> redrawEntry
-        |> fun s ->        
-        {s with RedrawScreen = false}
-    else
-        state
+// >> compone redrawClock y redrawEntry en una sola función
+let redrawScreen =
+    createRedrawScreen
+        (redrawClock >> redrawEntry)
+        (fun s -> s.RedrawScreen)
+        (fun s -> {s with RedrawScreen = false})
 
 let pipeline = [|
     updateTick
@@ -115,15 +103,12 @@ let pipeline = [|
     processKeyboard
     redrawScreen
 |]
+
 let miLoop = createMainLoop pipeline (fun s -> s.ProgramState <> Terminated)
 
 let mostrar() =
     Console.Clear()
     Console.CursorVisible <- false
-
-    initialState 
-    |> miLoop
-    |> ignore
-
+    initialState |> miLoop |> ignore
     Console.CursorVisible <- true
     Console.Clear()

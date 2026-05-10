@@ -1,12 +1,9 @@
 module App.Monster
 
 open System
-open System.Threading
 open App.Utils
 
-type ProgramState = 
-| Running
-| Terminated
+type ProgramState = Running | Terminated
 
 type State = {
     ProgramState: ProgramState
@@ -29,47 +26,32 @@ let displayMonster state =
 let updateMonsterKeyboard key state =
     let newState =
         match key with 
-        | ConsoleKey.UpArrow -> {state with y= max 0 (state.y-1)}
-        | ConsoleKey.DownArrow -> {state with y = min (Console.BufferHeight-1) (state.y+1)}
-        | ConsoleKey.LeftArrow -> {state with x = max 0 (state.x-1)}
+        | ConsoleKey.UpArrow    -> {state with y = max 0 (state.y-1)}
+        | ConsoleKey.DownArrow  -> {state with y = min (Console.BufferHeight-1) (state.y+1)}
+        | ConsoleKey.LeftArrow  -> {state with x = max 0 (state.x-1)}
         | ConsoleKey.RightArrow -> {state with x = min (Console.BufferWidth-2) (state.x+1)}
-        | ConsoleKey.Escape -> {state with ProgramState = Terminated}
+        | ConsoleKey.Escape     -> {state with ProgramState = Terminated}
         | _ -> state
-    if state <> newState then
-        {newState with RedrawScreen = true}
-    else
-        state 
-let processKeyboard state =
-    if Console.KeyAvailable then 
-        let k = Console.ReadKey true
-        state 
-        |> updateMonsterKeyboard k.Key
-    else
-        state
+    if state <> newState then {newState with RedrawScreen = true}
+    else state
 
-let redrawScreen state =
-    if state.RedrawScreen then 
-        Console.Clear()
-        state |> displayMonster
-        |> fun s ->
-            {s with RedrawScreen=false}
-    else
-        state
+// ── Reemplazadas por genéricas ──────────────────────────────────────────
+let processKeyboard =
+    createProcessKeyboard (fun k state -> updateMonsterKeyboard k.Key state)
 
+let redrawScreen =
+    createRedrawScreen
+        displayMonster
+        (fun s -> s.RedrawScreen)
+        (fun s -> {s with RedrawScreen = false})
 
-let pipeline = [|
-    processKeyboard
-    redrawScreen    
-|]
+let pipeline = [| processKeyboard; redrawScreen |]
 
 let miLoop = createMainLoop pipeline (fun s -> s.ProgramState = Running)
 
 let mostrar() =
     Console.Clear()
     Console.CursorVisible <- false
-
-    initialState
-    |> miLoop
-    |> ignore
+    initialState |> miLoop |> ignore
     Console.CursorVisible <- true
     Console.Clear()
